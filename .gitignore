@@ -1,5 +1,5 @@
 data/
-*.out
+out/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -5,6 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "simulate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceRoot}/simulate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-f", "out/cut.out.co_fails.pkl",
+                "-t", "data/cut.out",
+                "-i", "data/cut.out",
+                "-o", "out/cut.out.fifo.pkl",
+                "-m", "fifo",
+                "-c", "5"
+            ]
+        },
+        {
+            "name": "Python: Attach using Process Id",
+            "type": "python",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

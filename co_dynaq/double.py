@@ -1,66 +1,18 @@
-import trio
-from collections import deque
+import math
+from typing import Generator, Generic, Tuple, TypeVar
 
-class DoubleQueue(trio.abc.AsyncResource):
-    def __init__(self, capacity=None, items=None):
-        self._hasitem = trio.Condition()
-        self._hasspace = trio.Condition()
-        self._capacity = capacity
+from co_dynaq.fifo import FifoQueue
 
-        if items is None:
-            self._queue = deque(maxlen=capacity)
-        else:
-            self._queue = deque(items)
+from .flexi import FlexiQueue
 
-        self._closed = False
+__all__ = ['DoubleQueue']
 
-    async def put(self, item):
-        async with self._hasspace:
-            if self._closed:
-                raise trio.ClosedResourceError
-            if self._capacity is not None and len(self._queue) == self._capacity:
-                await self._hasspace.wait()
-                if self._closed:
-                    raise trio.ClosedResourceError
+T = TypeVar('T')
 
-            self._queue.append(item)
+class DoubleQueue(FlexiQueue[T], Generic[T]):
 
-        async with self._hasitem:
-            self._hasitem.notify()
-
-    async def pop(self):
-        async with self._hasitem:
-            if self._closed:
-                raise trio.ClosedResourceError
-            if len(self._queue) == 0:
-                await self._hasitem.wait()
-                if self._closed:
-                    raise trio.ClosedResourceError
-
-            async with self._hasspace:
-                self._hasspace.notify()
-
-            return self._queue.popleft()
-
-    @property
-    def closed(self):
-        return self._closed
-
-    async def close(self):
-        async with self._hasitem, self._hasspace:
-            self._hasitem.notify_all()
-            self._hasspace.notify_all()
-            self._queue.clear()
-            self._closed = True
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        try:
-            return await self.pop()
-        except trio.ClosedResourceError as e:
-            raise StopAsyncIteration from e
-
-    async def aclose(self, *_):
-        await self.close()
+    def __init__(self, dispatch:int=60, capacity:int=math.inf, items:Generator[Tuple[T, int], None, None]=None, _waiting_queue: FifoQueue[T]=None):
+        super().__init__(0, dispatch=dispatch, capacity=capacity, items=items, _waiting_queue=_waiting_queue)
+    
+    def clone(self, dispatch=None):
+        return type(self)(dispatch=dispatch or self.dispatch, capacity=self.maxlen, items=None, _waiting_queue=self.waiting_queue)

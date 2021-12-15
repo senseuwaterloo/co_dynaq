@@ -1,2 +1,5 @@
 from .fifo import *
-from .priority import *
+from .single import *
+from .double import *
+from .flexi import *
+from .use import *
