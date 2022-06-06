@@ -1,6 +1,6 @@
 # CODYNAQ
 
-This is an implementation of CODYNAQ[^codynaq] using Python built with [trio](https://github.com/python-trio/trio).
+This is an implementation of CODYNAQ[^codynaq] using Python and [trio](https://github.com/python-trio/trio).
 
 ## requirements
 
